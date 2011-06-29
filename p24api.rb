@@ -18,14 +18,14 @@ class P24
   def self.define_methods(type,*methods)
     methods.each do |method|
       define_method method do |*args|
-        @params = [method.to_s]
-        args.first.each {|k,v| @params << "#{k}=#{v}"} if args.first.is_a?(Hash)
+        @params = method == :bank_mfo ? [] : [method.to_s.gsub('_','=')]
+        args.first.each {|k,v| @params << "#{k}=#{rawurlencode(v)}"} if args.first.is_a?(Hash)
         query(type,@params)
       end
     end
   end
   
-  define_methods 'get', :exchange, :apicour, :deposit, :atm, :pboffice, :avias, :bonus, :kontech, :konauto, :konbez, :wifi
+  define_methods 'get', :exchange, :apicour, :deposit, :bank_mfo, :avias_price, :avias_avias, :atm, :pboffice, :peoplenet, :bonus, :kontech, :konauto, :konbez, :wifi
   # define_methods 'post', :privat24, :liqpay
   
   private
@@ -38,7 +38,6 @@ class P24
       url = type == 'post' ? @url.request_uri : @url.request_uri + '&' + (data.is_a?(Array) ? data.join('&') : (data.is_a?(String) ? data : ''))
       @response = http.send(type,url,(data unless type == 'get')).body if ['get','post'].include?(type)
     end
-    @response
   end
   
   # def signature(data)
@@ -49,9 +48,9 @@ class P24
   #   Base64.encode64(sha1(merch_sign + xml + merch_sign))
   # end
   # 
-  # def rawurlencode(str)
-  #   CGI.escape(str).gsub('+','%20')
-  # end
+  def rawurlencode(str)
+    CGI.escape(str).gsub('+','%20') rescue str
+  end
   # 
   # def sha1(str)
   #   Digest::SHA1.hexdigest(str)

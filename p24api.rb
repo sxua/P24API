@@ -7,12 +7,15 @@ require 'net/https'
 class P24
   attr_reader :response
   
-  def initialize(*args)
-    @url = URI.parse('https://privat24.privatbank.ua/p24/accountorder?oper=prp&PUREXML')
-    unless args.empty?
-      @merchant_id, @password, @url = args[0], args[1], (URI.parse(args[2]) rescue @url)
-    else
-    end
+  def initialize(options={})
+    options = defaults.merge(options)
+    @merchant_id, @password, @url = options[:merchant_id], options[:password], URI.parse(options[:url])
+  end
+  
+  def defaults
+    @options ||= {
+      :url => 'https://privat24.privatbank.ua/p24/accountorder?oper=prp&PUREXML'
+    }
   end
   
   def self.define_methods(type,*methods)
